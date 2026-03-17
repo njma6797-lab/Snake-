@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>لعبة الثعبان</title>
+<style>
+    body {
+        background: #111;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        font-family: Arial;
+        color: white;
+        flex-direction: column;
+    }
+
+    canvas {
+        background: #000;
+        box-shadow: 0 0 20px #0f0;
+    }
+
+    h1 {
+        margin-bottom: 10px;
+    }
+
+    #score {
+        margin-top: 10px;
+        font-size: 20px;
+    }
+</style>
+</head>
+<body>
+
+<h1>🐍 لعبة الثعبان</h1>
+<canvas id="game" width="400" height="400"></canvas>
+<div id="score">النقاط: 0</div>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+const box = 20;
+let snake = [{x: 200, y: 200}];
+let direction = "RIGHT";
+let food = {
+    x: Math.floor(Math.random() * 20) * box,
+    y: Math.floor(Math.random() * 20) * box
+};
+let score = 0;
+
+document.addEventListener("keydown", changeDirection);
+
+function changeDirection(event) {
+    if (event.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
+    else if (event.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
+    else if (event.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
+    else if (event.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
+}
+
+function draw() {
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, 400, 400);
+
+    // رسم الثعبان
+    for (let i = 0; i < snake.length; i++) {
+        ctx.fillStyle = i === 0 ? "lime" : "green";
+        ctx.fillRect(snake[i].x, snake[i].y, box, box);
+    }
+
+    // رسم الأكل
+    ctx.fillStyle = "red";
+    ctx.fillRect(food.x, food.y, box, box);
+
+    let headX = snake[0].x;
+    let headY = snake[0].y;
+
+    if (direction === "LEFT") headX -= box;
+    if (direction === "UP") headY -= box;
+    if (direction === "RIGHT") headX += box;
+    if (direction === "DOWN") headY += box;
+
+    // الأكل
+    if (headX === food.x && headY === food.y) {
+        score++;
+        document.getElementById("score").innerText = "النقاط: " + score;
+        food = {
+            x: Math.floor(Math.random() * 20) * box,
+            y: Math.floor(Math.random() * 20) * box
+        };
+    } else {
+        snake.pop();
+    }
+
+    const newHead = {x: headX, y: headY};
+
+    // التصادم
+    if (
+        headX < 0 || headY < 0 ||
+        headX >= 400 || headY >= 400 ||
+        collision(newHead, snake)
+    ) {
+        clearInterval(game);
+        alert("انتهت اللعبة! نقاطك: " + score);
+    }
+
+    snake.unshift(newHead);
+}
+
+function collision(head, array) {
+    for (let i = 0; i < array.length; i++) {
+        if (head.x === array[i].x && head.y === array[i].y) {
+            return true;
+        }
+    }
+    return false;
+}
+
+let game = setInterval(draw, 100);
+</script>
+
+</body>
+</html>

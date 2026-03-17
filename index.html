@@ -2,127 +2,128 @@
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
-<title>لعبة الثعبان</title>
+<title>Snake Pro</title>
 
 <style>
-body {
-    background: #000;
-    text-align: center;
-    color: white;
-    font-family: Arial;
+body{
+    background:black;
+    text-align:center;
+    color:white;
+    font-family:Arial;
 }
 
-canvas {
-    background: #111;
-    box-shadow: 0 0 20px lime;
-    margin-top: 10px;
-}
-
-#controls {
-    margin-top: 15px;
-}
-
-button {
-    width: 70px;
-    height: 50px;
-    font-size: 20px;
-    margin: 5px;
-    border: none;
-    border-radius: 10px;
-    background: lime;
+canvas{
+    background:#111;
+    box-shadow:0 0 25px lime;
+    touch-action:none;
 }
 </style>
 </head>
 
 <body>
 
-<h2>🐍 لعبة الثعبان</h2>
-<canvas id="game" width="300" height="300"></canvas>
+<h2>🐍 Snake Pro</h2>
+<canvas id="game" width="320" height="320"></canvas>
 <div>النقاط: <span id="score">0</span></div>
-
-<div id="controls">
-    <br>
-    <button onclick="setDir('UP')">⬆️</button><br>
-    <button onclick="setDir('LEFT')">⬅️</button>
-    <button onclick="setDir('DOWN')">⬇️</button>
-    <button onclick="setDir('RIGHT')">➡️</button>
-</div>
 
 <script>
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-let box = 20;
-let snake = [{x: 160, y: 160}];
-let direction = "RIGHT";
+let box = 16;
+let snake = [{x:160,y:160}];
+let dir = "RIGHT";
 
-let food = {
-    x: Math.floor(Math.random()*15)*box,
-    y: Math.floor(Math.random()*15)*box
-};
-
+let food = randomFood();
 let score = 0;
+let speed = 120;
 
-function setDir(dir){
-    direction = dir;
+function randomFood(){
+    return {
+        x: Math.floor(Math.random()*20)*box,
+        y: Math.floor(Math.random()*20)*box
+    };
 }
 
-function draw(){
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0,0,300,300);
+// سحب للموبايل
+let startX, startY;
 
-    // الثعبان
-    snake.forEach((part,i)=>{
+canvas.addEventListener("touchstart", e=>{
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+});
+
+canvas.addEventListener("touchend", e=>{
+    let dx = e.changedTouches[0].clientX - startX;
+    let dy = e.changedTouches[0].clientY - startY;
+
+    if(Math.abs(dx) > Math.abs(dy)){
+        if(dx > 0 && dir!="LEFT") dir="RIGHT";
+        else if(dx < 0 && dir!="RIGHT") dir="LEFT";
+    } else {
+        if(dy > 0 && dir!="UP") dir="DOWN";
+        else if(dy < 0 && dir!="DOWN") dir="UP";
+    }
+});
+
+function draw(){
+
+    ctx.fillStyle="black";
+    ctx.fillRect(0,0,320,320);
+
+    // الثعبان (ناعم)
+    snake.forEach((p,i)=>{
         ctx.fillStyle = i==0 ? "#00ff00" : "#00aa00";
-        ctx.fillRect(part.x, part.y, box, box);
+        ctx.beginPath();
+        ctx.roundRect(p.x,p.y,box,box,5);
+        ctx.fill();
     });
 
     // الأكل
-    ctx.fillStyle = "red";
-    ctx.fillRect(food.x, food.y, box, box);
+    ctx.fillStyle="red";
+    ctx.beginPath();
+    ctx.arc(food.x+8, food.y+8, 6, 0, Math.PI*2);
+    ctx.fill();
 
     let headX = snake[0].x;
     let headY = snake[0].y;
 
-    if(direction=="LEFT") headX -= box;
-    if(direction=="RIGHT") headX += box;
-    if(direction=="UP") headY -= box;
-    if(direction=="DOWN") headY += box;
+    if(dir=="LEFT") headX-=box;
+    if(dir=="RIGHT") headX+=box;
+    if(dir=="UP") headY-=box;
+    if(dir=="DOWN") headY+=box;
 
-    // أكل
-    if(headX == food.x && headY == food.y){
+    if(headX==food.x && headY==food.y){
         score++;
         document.getElementById("score").innerText = score;
-        food = {
-            x: Math.floor(Math.random()*15)*box,
-            y: Math.floor(Math.random()*15)*box
-        };
+        food = randomFood();
+
+        // زيادة السرعة
+        if(speed>60){
+            speed -= 2;
+            clearInterval(game);
+            game = setInterval(draw, speed);
+        }
+
     } else {
         snake.pop();
     }
 
-    let newHead = {x: headX, y: headY};
+    let newHead = {x:headX,y:headY};
 
-    // تصادم
-    if(headX<0 || headY<0 || headX>=300 || headY>=300 || collision(newHead)){
-        alert("خسرت 😢 نقاطك: " + score);
-        snake = [{x:160,y:160}];
-        score = 0;
+    if(headX<0 || headY<0 || headX>=320 || headY>=320 || hit(newHead)){
+        alert("💀 خسرت! نقاطك: " + score);
+        location.reload();
     }
 
     snake.unshift(newHead);
 }
 
-function collision(head){
-    for(let i=0;i<snake.length;i++){
-        if(head.x==snake[i].x && head.y==snake[i].y){
-            return true;
-        }
-    }
-    return false;
+function hit(head){
+    return snake.some(p => p.x==head.x && p.y==head.y);
 }
 
-setInterval(draw,120);
+let game = setInterval(draw, speed);
 </script>
 
 </body>

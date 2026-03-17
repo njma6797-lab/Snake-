@@ -3,121 +3,126 @@
 <head>
 <meta charset="UTF-8">
 <title>لعبة الثعبان</title>
+
 <style>
-    body {
-        background: #111;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        margin: 0;
-        font-family: Arial;
-        color: white;
-        flex-direction: column;
-    }
+body {
+    background: #000;
+    text-align: center;
+    color: white;
+    font-family: Arial;
+}
 
-    canvas {
-        background: #000;
-        box-shadow: 0 0 20px #0f0;
-    }
+canvas {
+    background: #111;
+    box-shadow: 0 0 20px lime;
+    margin-top: 10px;
+}
 
-    h1 {
-        margin-bottom: 10px;
-    }
+#controls {
+    margin-top: 15px;
+}
 
-    #score {
-        margin-top: 10px;
-        font-size: 20px;
-    }
+button {
+    width: 70px;
+    height: 50px;
+    font-size: 20px;
+    margin: 5px;
+    border: none;
+    border-radius: 10px;
+    background: lime;
+}
 </style>
 </head>
+
 <body>
 
-<h1>🐍 لعبة الثعبان</h1>
-<canvas id="game" width="400" height="400"></canvas>
-<div id="score">النقاط: 0</div>
+<h2>🐍 لعبة الثعبان</h2>
+<canvas id="game" width="300" height="300"></canvas>
+<div>النقاط: <span id="score">0</span></div>
+
+<div id="controls">
+    <br>
+    <button onclick="setDir('UP')">⬆️</button><br>
+    <button onclick="setDir('LEFT')">⬅️</button>
+    <button onclick="setDir('DOWN')">⬇️</button>
+    <button onclick="setDir('RIGHT')">➡️</button>
+</div>
 
 <script>
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-const box = 20;
-let snake = [{x: 200, y: 200}];
+let box = 20;
+let snake = [{x: 160, y: 160}];
 let direction = "RIGHT";
+
 let food = {
-    x: Math.floor(Math.random() * 20) * box,
-    y: Math.floor(Math.random() * 20) * box
+    x: Math.floor(Math.random()*15)*box,
+    y: Math.floor(Math.random()*15)*box
 };
+
 let score = 0;
 
-document.addEventListener("keydown", changeDirection);
-
-function changeDirection(event) {
-    if (event.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
-    else if (event.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
-    else if (event.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
-    else if (event.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
+function setDir(dir){
+    direction = dir;
 }
 
-function draw() {
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, 400, 400);
+function draw(){
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0,0,300,300);
 
-    // رسم الثعبان
-    for (let i = 0; i < snake.length; i++) {
-        ctx.fillStyle = i === 0 ? "lime" : "green";
-        ctx.fillRect(snake[i].x, snake[i].y, box, box);
-    }
+    // الثعبان
+    snake.forEach((part,i)=>{
+        ctx.fillStyle = i==0 ? "#00ff00" : "#00aa00";
+        ctx.fillRect(part.x, part.y, box, box);
+    });
 
-    // رسم الأكل
+    // الأكل
     ctx.fillStyle = "red";
     ctx.fillRect(food.x, food.y, box, box);
 
     let headX = snake[0].x;
     let headY = snake[0].y;
 
-    if (direction === "LEFT") headX -= box;
-    if (direction === "UP") headY -= box;
-    if (direction === "RIGHT") headX += box;
-    if (direction === "DOWN") headY += box;
+    if(direction=="LEFT") headX -= box;
+    if(direction=="RIGHT") headX += box;
+    if(direction=="UP") headY -= box;
+    if(direction=="DOWN") headY += box;
 
-    // الأكل
-    if (headX === food.x && headY === food.y) {
+    // أكل
+    if(headX == food.x && headY == food.y){
         score++;
-        document.getElementById("score").innerText = "النقاط: " + score;
+        document.getElementById("score").innerText = score;
         food = {
-            x: Math.floor(Math.random() * 20) * box,
-            y: Math.floor(Math.random() * 20) * box
+            x: Math.floor(Math.random()*15)*box,
+            y: Math.floor(Math.random()*15)*box
         };
     } else {
         snake.pop();
     }
 
-    const newHead = {x: headX, y: headY};
+    let newHead = {x: headX, y: headY};
 
-    // التصادم
-    if (
-        headX < 0 || headY < 0 ||
-        headX >= 400 || headY >= 400 ||
-        collision(newHead, snake)
-    ) {
-        clearInterval(game);
-        alert("انتهت اللعبة! نقاطك: " + score);
+    // تصادم
+    if(headX<0 || headY<0 || headX>=300 || headY>=300 || collision(newHead)){
+        alert("خسرت 😢 نقاطك: " + score);
+        snake = [{x:160,y:160}];
+        score = 0;
     }
 
     snake.unshift(newHead);
 }
 
-function collision(head, array) {
-    for (let i = 0; i < array.length; i++) {
-        if (head.x === array[i].x && head.y === array[i].y) {
+function collision(head){
+    for(let i=0;i<snake.length;i++){
+        if(head.x==snake[i].x && head.y==snake[i].y){
             return true;
         }
     }
     return false;
 }
 
-let game = setInterval(draw, 100);
+setInterval(draw,120);
 </script>
 
 </body>
